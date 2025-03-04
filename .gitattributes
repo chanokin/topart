@@ -1,0 +1,11 @@
+[attr]rust text eol=lf whitespace=tab-in-indent,trailing-space,tabwidth=4
+
+# Auto detect text files and perform normalization
+*          text=auto eol=lf
+
+*.rs       text diff=rust
+*.toml     text diff=toml
+*.fixed linguist-language=Rust
+*.mir linguist-language=Rust
+
+Cargo.lock text
