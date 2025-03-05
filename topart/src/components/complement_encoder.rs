@@ -1,7 +1,7 @@
 use burn::prelude::*;
 /// ComplementEncoder
-/// I'm assuming the input is an image with values between 0 and 1
-/// CHANNELS FIRST!
+/// I'm assuming the input has values between 0 and 1
+/// I'll start with the 1D case
 #[derive(Module, Clone, Debug, Default)]
 pub struct ComplementEncoder;
 
@@ -11,9 +11,10 @@ impl ComplementEncoder {
     }
 
     // in the forward pass we'll create the new tensor with the complement of the input tensor
-    // remember the shape is [batch_size, channels, height, width]
-    pub fn forward<B: Backend>(&self, input: Tensor<B, 4>) -> Tensor<B, 4> {
-        Tensor::cat(vec![input.clone(), -input + 1.0], 1)
+    // remember the shape is [batch_size, n_neurons]
+    pub fn forward<B: Backend>(&self, input: Tensor<B, 2>) -> Tensor<B, 2> {
+        // note the -input + 1.0 is a weird way of computing the complement of the input tensor
+        Tensor::cat(vec![input.clone(), -input.clone() + 1.0], 1)
     }
 }
 
@@ -29,9 +30,17 @@ mod tests {
     #[test]
     fn num_elements() {
         // let sample = Tensor::<burn::backend::Wgpu<f32, i32>, 4>::zeros([1, 3, 4, 5], &Default::default());
-        let sample = TestTensor::<4>::zeros([1, 3, 4, 5], &Default::default());
+        let sample = TestTensor::<2>::zeros([4, 3], &Default::default());
+        let [batch_size, n_neurons] = sample.dims();
+        let sample_n_elements = sample.shape().num_elements();
+        assert_eq!(sample_n_elements, 12);
+
         let encoder = ComplementEncoder::new();
         let output = encoder.forward(sample);
-        assert_eq!(output.shape().num_elements(), 120);
+        assert_eq!(output.shape().num_elements(), 2 * sample_n_elements);
+
+        let [batch_size_i, n_neurons_i] = output.dims();
+        assert_eq!(batch_size, batch_size_i);
+        assert_eq!(n_neurons * 2, n_neurons_i);
     }
 }
