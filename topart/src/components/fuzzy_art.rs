@@ -35,10 +35,10 @@ pub fn weight_update<B: Backend>(beta: f32, input: Tensor<B, 1>, weights_i: Tens
 
 
 pub fn activate<B: Backend>(activations: Tensor<B, 1>, winners_indices: Tensor<B,1, Int>) -> Tensor<B, 1> {
-    let output: Tensor<B, 1> = Tensor::<B, 1>::zeros_like(&activations);
     let values = Tensor::<B, 1>::ones(winners_indices.shape(), &activations.device());
-    let output = output.scatter(0, winners_indices, values);
-    output
+
+    Tensor::<B, 1>::zeros_like(&activations).scatter(0, winners_indices, values)
+
 }
 // /// Category size
 // /// This function returns the number of neurons in the category layer
