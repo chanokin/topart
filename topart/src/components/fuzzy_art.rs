@@ -33,6 +33,13 @@ pub fn weight_update<B: Backend>(beta: f32, input: Tensor<B, 1>, weights_i: Tens
     weights_i.clone() * (1.0 - beta) + fuzzy_intersection(input, weights_i) * beta
 }
 
+
+pub fn activate<B: Backend>(activations: Tensor<B, 1>, winners_indices: Tensor<B,1, Int>) -> Tensor<B, 1> {
+    let output: Tensor<B, 1> = Tensor::<B, 1>::zeros_like(&activations);
+    let values = Tensor::<B, 1>::ones(winners_indices.shape(), &activations.device());
+    let output = output.scatter(0, winners_indices, values);
+    output
+}
 // /// Category size
 // /// This function returns the number of neurons in the category layer
 // pub fn category_size<B: Backend>(output_index: usize, weights: Tensor<B, 2>) -> Float {
