@@ -1,4 +1,4 @@
-use burn::prelude::*;
+use burn::{backend::wgpu::FloatElement, prelude::*};
 
 /// FuzzyIntersection
 /// basically an alias to the min_pair function
@@ -14,8 +14,8 @@ pub fn taxicab_norm<B: Backend>(input: Tensor<B, 1>) -> Tensor<B, 1> {
 /// Choice
 /// This is the choice function for the Fuzzy ART algorithm
 /// It takes the input tensor, the weights tensor, and the vigilance parameter alpha
-/// It returns the choice tensor which is the "fitness" of an output neuron to the input x weights
-pub fn choice<B: Backend, S: ElementConversion>(alpha: S, input: Tensor<B, 1>, weights_i: Tensor<B, 1>) -> Tensor<B, 1> {
+/// It returns the choice tensor which is the "fitness" of an output neuron[i] to the input (x weights[i])
+pub fn choice<B: Backend>(alpha: f32, input: Tensor<B, 1>, weights_i: Tensor<B, 1>) -> Tensor<B, 1> {
 
     let intersect = fuzzy_intersection(input, weights_i.clone());
     let inter_norm = taxicab_norm(intersect);
@@ -23,6 +23,23 @@ pub fn choice<B: Backend, S: ElementConversion>(alpha: S, input: Tensor<B, 1>, w
     inter_norm / (weights_norm + alpha)
 }
 
+pub fn resonates<B: Backend>(rho: f32, input: Tensor<B, 1>, weights_i: Tensor<B, 1>) -> bool {
+    let fitness = choice(0.0, input, weights_i);
+    fitness.greater_equal_elem(rho).into_scalar()
+}
+
+
+pub fn weight_update<B: Backend>(beta: f32, input: Tensor<B, 1>, weights_i: Tensor<B, 1>) -> Tensor<B, 1> {
+    weights_i.clone() * (1.0 - beta) + fuzzy_intersection(input, weights_i) * beta
+}
+
+// /// Category size
+// /// This function returns the number of neurons in the category layer
+// pub fn category_size<B: Backend>(output_index: usize, weights: Tensor<B, 2>) -> Float {
+//     let [out_dim, in_dim] = weights.dims();
+
+//     1.0
+// }
 
 #[cfg(test)]
 mod tests {
